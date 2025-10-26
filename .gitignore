@@ -1,5 +1,15 @@
-# Created by https://www.toptal.com/developers/gitignore/api/python,pycharm,flask,venv
-# Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,flask,venv
+# Created by https://www.toptal.com/developers/gitignore/api/pycharm,database,python,flask,venv
+# Edit at https://www.toptal.com/developers/gitignore?templates=pycharm,database,python,flask,venv
+
+### Database ###
+*.accdb
+*.db
+*.dbf
+*.mdb
+*.pdb
+*.sqlite3
+*.db-shm
+*.db-wal
 
 ### Flask ###
 instance/*
@@ -384,4 +394,4 @@ pyrightconfig.json
 pyvenv.cfg
 pip-selfcheck.json
 
-# End of https://www.toptal.com/developers/gitignore/api/python,pycharm,flask,venv
+# End of https://www.toptal.com/developers/gitignore/api/pycharm,database,python,flask,venv
