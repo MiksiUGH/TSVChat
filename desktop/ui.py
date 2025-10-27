@@ -1,14 +1,15 @@
 import sys
 from PyQt6 import uic, QtCore, QtWidgets
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton
 import requests
 
 
 class ChatWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        uic.loadUi('desktop/ui_files/...', self)
+        uic.loadUi('desktop/ui_files/main_window.ui', self)
         self.initUI()
+        self.window: None | RegisterWidget | LoginWidget = None
 
     def initUI(self) -> None:
         ...
@@ -17,7 +18,7 @@ class ChatWindow(QMainWindow):
 class RegisterWidget(QWidget):
     def __init__(self) -> None:
         super().__init__()
-        uic.loadUi('desktop/ui_files/...', self)
+        uic.loadUi('desktop/ui_files/register.ui', self)
         self.initUI()
 
     def initUI(self) -> None:
@@ -27,7 +28,7 @@ class RegisterWidget(QWidget):
 class LoginWidget(QWidget):
     def __init__(self) -> None:
         super().__init__()
-        uic.loadUi('desktop/ui_files/...', self)
+        uic.loadUi('desktop/ui_files/login.ui', self)
         self.initUI()
 
     def initUI(self) -> None:
@@ -37,11 +38,21 @@ class LoginWidget(QWidget):
 class ChoiceWidget(QWidget):
     def __init__(self) -> None:
         super().__init__()
-        uic.loadUi('desktop/ui_files/...', self)
+        uic.loadUi('desktop/ui_files/choice.ui', self)
         self.initUI()
 
     def initUI(self) -> None:
-        ...
+        self.reg_btn.clicked.connect(self.click)
+        self.log_btn.clicked.connect(self.click)
+
+    def click(self) -> None:
+        if self.sender().objectName() == 'reg_btn':
+            window_chat.window = RegisterWidget()
+        else:
+            window_chat.window = LoginWidget()
+
+        window_chat.window.show()
+        self.close()
 
 
 if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
@@ -56,6 +67,7 @@ def excepthook(a, b, c) -> None:
 if __name__ == '__main__':
     sys.excepthook = excepthook
     app = QApplication(sys.argv)
-    window = ChatWindow()
-    window.show()
+    window_chat: ChatWindow = ChatWindow()
+    window_choice: ChoiceWidget = ChoiceWidget()
+    window_choice.show()
     sys.exit(app.exec())
