@@ -42,6 +42,8 @@ class ChoiceWidget(QWidget):
         self.initUI()
 
     def initUI(self) -> None:
+        self.setFixedSize(400, 132)
+
         self.reg_btn.clicked.connect(self.click)
         self.log_btn.clicked.connect(self.click)
 
