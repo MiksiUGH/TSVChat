@@ -1,7 +1,8 @@
 import sys
 from PyQt6 import uic, QtCore, QtWidgets
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QLineEdit, QMessageBox
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QPushButton,
+                             QLineEdit, QMessageBox, QLabel)
 import requests
 from requests.exceptions import ConnectionError
 
@@ -23,8 +24,8 @@ class RegisterWidget(QWidget):
         uic.loadUi('desktop/ui_files/register.ui', self)
         self.initUI()
 
-        msb: QMessageBox = QMessageBox(self)
-        msb.setWindowTitle('Ошибка')
+        self.msb: QMessageBox = QMessageBox(self)
+        self.msb.setWindowTitle('Ошибка')
 
     def initUI(self) -> None:
         self.register_btn.clicked.connect(self.enter_in)
@@ -32,7 +33,19 @@ class RegisterWidget(QWidget):
         self.password_line.setEchoMode(QLineEdit.EchoMode.Password)
         self.try_line.setEchoMode(QLineEdit.EchoMode.Password)
 
+    def return_style(self) -> None:
+        line_edits = self.findChildren(QLineEdit)
+        labels = self.findChildren(QLabel)
+
+        for line, lab in zip(line_edits, labels):
+            line.setStyleSheet("border: .5px solid black;")
+            lab.setStyleSheet("color: black;")
+
+        self.description.setStyleSheet("border: .5px solid black;")
+
     def enter_in(self) -> None:
+        self.return_style()
+
         if self.name_line.text():
             if self.password_line.text():
                 if self.description.toPlainText():
@@ -49,17 +62,17 @@ class RegisterWidget(QWidget):
                                 window_chat.show()
                                 self.close()
                             else:
-                                msb.setText('Ошибка со стороны сервера!')
-                                msb.show()
+                                self.msb.setText('Ошибка со стороны сервера!')
+                                self.msb.show()
 
                         except ConnectionError:
-                            msb.setText('Сервер недоступен!')
-                            msb.show()
+                            self.msb.setText('Сервер недоступен!')
+                            self.msb.show()
 
                     else:
                         if self.try_line.text() != self.password_line.text():
-                            msb.setText('Пароли не совпадают!')
-                            msb.show()
+                            self.msb.setText('Пароли не совпадают!')
+                            self.msb.show()
                         else:
                             self.try_line.setStyleSheet("border: 1px solid red;")
                             self.label_4.setStyleSheet("color: red")
