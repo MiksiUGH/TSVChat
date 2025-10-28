@@ -57,8 +57,12 @@ class RegisterWidget(QWidget):
                             msb.show()
 
                     else:
-                        self.try_line.setStyleSheet("border: 1px solid red;")
-                        self.label_4.setStyleSheet("color: red")
+                        if self.try_line.text() != self.password_line.text():
+                            msb.setText('Пароли не совпадают!')
+                            msb.show()
+                        else:
+                            self.try_line.setStyleSheet("border: 1px solid red;")
+                            self.label_4.setStyleSheet("color: red")
                 else:
                     self.description.setStyleSheet("border: 1px solid red;")
                     self.label_2.setStyleSheet("color: red")
