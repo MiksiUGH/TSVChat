@@ -23,7 +23,8 @@ def registration() -> Tuple[flask.Response, int]:
         new_user_profile = UserProfile(
             user_info=user_info,
             user_password=user_password,
-            user=new_user
+            user=new_user,
+            user_state=True
         )
         session.add(new_user)
         session.add(new_user_profile)
