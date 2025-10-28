@@ -49,6 +49,8 @@ def login() -> Tuple[flask.Response, int]:
             )
         if user_profile and user_profile.user_password == password:
             result.update({'answer': True, 'main_id': user_profile.user_id})
+            user_profile.user_state = False
+            session.commit()
     return flask.jsonify(result), 200
 
 @app.route('/', methods=['GET'])
