@@ -13,6 +13,7 @@ class ChatWindow(QMainWindow):
         uic.loadUi('desktop/ui_files/main_window.ui', self)
         self.initUI()
         self.window: None | RegisterWidget | LoginWidget = None
+        self.main_id: int | None = None
 
     def initUI(self) -> None:
         ...
@@ -57,8 +58,9 @@ class RegisterWidget(QWidget):
                         }
 
                         try:
-                            answer: dict[str, bool] = requests.post("http://127.0.0.1:5000/register", json=data)
-                            if answer:
+                            answer: dict[str, bool | int] = requests.post("http://127.0.0.1:5000/register", json=data)
+                            if answer['answer']:
+                                window_chat.main_id = answer['main_id']
                                 window_chat.show()
                                 self.close()
                             else:
@@ -94,7 +96,18 @@ class LoginWidget(QWidget):
         self.initUI()
 
     def initUI(self) -> None:
-        ...
+        self.login_btn.clicked.connect(self.enter_in)
+
+    def return_style(self) -> None:
+        line_edits = self.findChildren(QLineEdit)
+        labels = self.findChildren(QLabel)
+
+        for line, lab in zip(line_edits, labels):
+            line.setStyleSheet("border: .5px solid black;")
+            lab.setStyleSheet("color: black;")
+
+    def enter_in(self) -> None:
+        self.return_style()
 
 
 class ChoiceWidget(QWidget):
