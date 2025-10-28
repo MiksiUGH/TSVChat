@@ -58,7 +58,11 @@ class RegisterWidget(QWidget):
                         }
 
                         try:
-                            answer: dict[str, bool | int] = requests.post("http://127.0.0.1:5000/register", json=data)
+                            answer: dict[str, bool | int] = requests.post(
+                                "http://127.0.0.1:5000/register",
+                                json=data
+                            ).json()
+
                             if answer['answer']:
                                 window_chat.main_id = answer['main_id']
                                 window_chat.show()
@@ -95,8 +99,13 @@ class LoginWidget(QWidget):
         uic.loadUi('desktop/ui_files/login.ui', self)
         self.initUI()
 
+        self.msb: QMessageBox = QMessageBox(self)
+        self.msb.setWindowTitle('Ошибка')
+
     def initUI(self) -> None:
         self.login_btn.clicked.connect(self.enter_in)
+
+        self.password_line.setEchoMode(QLineEdit.EchoMode.Password)
 
     def return_style(self) -> None:
         line_edits = self.findChildren(QLineEdit)
@@ -108,6 +117,37 @@ class LoginWidget(QWidget):
 
     def enter_in(self) -> None:
         self.return_style()
+
+        if self.name_line.text():
+            if self.password_line.text():
+                data: dict[str, str] = {
+                    'username': self.name_line.text(),
+                    'password': self.password_line.text()
+                }
+
+                try:
+                    answer: dict[str, bool | int] = requests.get(
+                        "http://127.0.0.1:5000/login",
+                        json=data
+                    ).json()
+
+                    if answer['answer']:
+                        window_chat.main_id = answer['main_id']
+                        window_chat.show()
+                        self.close()
+                    else:
+                        self.msb.setText('Неверное имя пользователя или пароль!')
+                        self.msb.show()
+                except ConnectionError:
+                    self.msb.setText('Сервер недоступен!')
+                    self.msb.show()
+
+            else:
+                self.password_line.setStyleSheet("border: 1px solid red;")
+                self.label_2.setStyleSheet("color: red")
+        else:
+            self.name_line.setStyleSheet("border: 1px solid red;")
+            self.label.setStyleSheet("color: red")
 
 
 class ChoiceWidget(QWidget):
