@@ -46,7 +46,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLineEdit" name="nickname_line">
+  <widget class="QLineEdit" name="password_line">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -56,7 +56,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QLineEdit" name="password_line">
+  <widget class="QLineEdit" name="try_line">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -108,7 +108,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Придумайте никнейм:</string>
+    <string>Придумайте пароль:</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_4">
@@ -121,7 +121,7 @@
     </rect>
    </property>
    <property name="text">
-    <string>Придумайте пароль:</string>
+    <string>Повторите пароль:</string>
    </property>
   </widget>
  </widget>

@@ -1,7 +1,9 @@
 import sys
 from PyQt6 import uic, QtCore, QtWidgets
-from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QMainWindow, QWidget, QPushButton, QLineEdit, QMessageBox
 import requests
+from requests.exceptions import ConnectionError
 
 
 class ChatWindow(QMainWindow):
@@ -21,8 +23,51 @@ class RegisterWidget(QWidget):
         uic.loadUi('desktop/ui_files/register.ui', self)
         self.initUI()
 
+        msb: QMessageBox = QMessageBox(self)
+        msb.setWindowTitle('Ошибка')
+
     def initUI(self) -> None:
-        ...
+        self.register_btn.clicked.connect(self.enter_in)
+
+        self.password_line.setEchoMode(QLineEdit.EchoMode.Password)
+        self.try_line.setEchoMode(QLineEdit.EchoMode.Password)
+
+    def enter_in(self) -> None:
+        if self.name_line.text():
+            if self.password_line.text():
+                if self.description.toPlainText():
+                    if self.try_line.text() and self.try_line.text() == self.password_line.text():
+                        data: dict[str, str] = {
+                            "username": self.name_line.text(),
+                            "password": self.password_line.text(),
+                            "user_info": self.description.toPlainText(),
+                        }
+
+                        try:
+                            answer: dict[str, bool] = requests.post("http://127.0.0.1:5000/register", json=data)
+                            if answer:
+                                window_chat.show()
+                                self.close()
+                            else:
+                                msb.setText('Ошибка со стороны сервера!')
+                                msb.show()
+
+                        except ConnectionError:
+                            msb.setText('Сервер недоступен!')
+                            msb.show()
+
+                    else:
+                        self.try_line.setStyleSheet("border: 1px solid red;")
+                        self.label_4.setStyleSheet("color: red")
+                else:
+                    self.description.setStyleSheet("border: 1px solid red;")
+                    self.label_2.setStyleSheet("color: red")
+            else:
+                self.password.setStyleSheet("border: 1px solid red;")
+                self.label_3.setStyleSheet("color: red")
+        else:
+            self.name_line.setStyleSheet("border: 1px solid red;")
+            self.label.setStyleSheet("color: red")
 
 
 class LoginWidget(QWidget):
