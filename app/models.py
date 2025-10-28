@@ -29,6 +29,7 @@ class UserProfile(Base):
     user_info: Mapped[str] = mapped_column()
     user_password: Mapped[str] = mapped_column()
     user_id: Mapped[int] = mapped_column(ForeignKey('users.id'), unique=True)
+    user_state: Mapped[bool] = mapped_column()
 
     user: Mapped['User'] = relationship(back_populates='user_profile')
 
