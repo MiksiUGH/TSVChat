@@ -12,7 +12,6 @@ class ChatWindow(QMainWindow):
         super().__init__()
         uic.loadUi('desktop/ui_files/main_window.ui', self)
         self.initUI()
-        self.setWindowState(Qt.WindowState.WindowMaximized)
         self.window: None | RegisterWidget | LoginWidget = None
         self.main_id: int | None = None
 
