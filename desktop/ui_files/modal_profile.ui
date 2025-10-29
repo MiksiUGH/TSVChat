@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>UserProfileModal</class>
+ <widget class="QDialog" name="UserProfileModal">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>350</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Профиль пользователя</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+     QDialog {
+       background-color: white;
+     }
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QHBoxLayout" name="headerLayout">
+     <item>
+      <widget class="QLabel" name="titleLabel">
+       <property name="text">
+        <string>Профиль пользователя</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-size: 16px; font-weight: bold; color: #333;</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QFrame" name="line">
+     <property name="frameShape">
+      <enum>QFrame::Shape::HLine</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Sunken</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="infoTopLayout">
+     <item>
+      <layout class="QVBoxLayout" name="nameLayout">
+       <item>
+        <widget class="QLabel" name="modalNameLabel">
+         <property name="text">
+          <string>Имя пользователя</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font-size: 18px; font-weight: bold; color: #333;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="modalIdLabel">
+         <property name="text">
+          <string>ID: 12345</string>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">font-size: 14px; color: #666;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QLabel" name="modalStatusLabel">
+       <property name="text">
+        <string>● В сети</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font-size: 14px; color: #28a745; font-weight: bold;</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignRight</set>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QLabel" name="infoTitleLabel">
+     <property name="text">
+      <string>Информация:</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-size: 14px; font-weight: bold; color: #333; margin-top: 10px;</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTextEdit" name="infoTextEdit">
+     <property name="styleSheet">
+      <string notr="true">
+       QTextEdit {
+         border: 1px solid #ddd;
+         border-radius: 5px;
+         padding: 8px;
+         background-color: #f8f9fa;
+       }
+      </string>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="buttonLayout">
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="modalCloseBtn">
+       <property name="text">
+        <string>Закрыть</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">
+         QPushButton {
+           background-color: #6c757d;
+           color: white;
+           border: none;
+           padding: 8px 16px;
+           border-radius: 5px;
+         }
+         QPushButton:hover {
+           background-color: #5a6268;
+         }
+        </string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
