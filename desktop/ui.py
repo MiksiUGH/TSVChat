@@ -1,7 +1,7 @@
 import sys
 from typing import List
 from PyQt6 import uic, QtCore, QtWidgets
-from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtCore import Qt, QSize, QTimer
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QPushButton,
                              QLineEdit, QMessageBox, QLabel, QFrame, QTextBrowser,
                              QVBoxLayout, QHBoxLayout, QSizePolicy, QDialog)
@@ -90,7 +90,7 @@ class ChatWindow(QMainWindow):
 
     def scroll_to_bottom(self) -> None:
         scrollbar = self.scroll_chat.verticalScrollBar()
-        scrollbar.setValue(scrollbar.maximum())
+        QtCore.QTimer.singleShot(100, lambda: scrollbar.setValue(scrollbar.maximum()))
 
     def show_my_profile(self) -> None:
         self.wind: UserProfileModal = UserProfileModal(
