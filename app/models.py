@@ -40,6 +40,6 @@ class UserMessage(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     date: Mapped[str] = mapped_column()
     message: Mapped[str] = mapped_column()
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
+    user_name: Mapped[str] = mapped_column(ForeignKey('users.username'))
 
     user: Mapped['User'] = relationship(back_populates='messages')
