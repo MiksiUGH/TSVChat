@@ -1,11 +1,11 @@
 import sys
-from typing import List
+from typing import List, Optional, Dict, Any, Union
 from PyQt6 import uic, QtCore, QtWidgets
-from PyQt6.QtCore import Qt, QSize, QTimer
+from PyQt6.QtCore import Qt, QSize, QTimer, QEvent
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QPushButton,
                              QLineEdit, QMessageBox, QLabel, QFrame, QTextBrowser,
                              QVBoxLayout, QHBoxLayout, QSizePolicy, QDialog)
-from PyQt6.QtGui import QTextDocument
+from PyQt6.QtGui import QTextDocument, QCloseEvent, QShowEvent
 import requests
 from requests.exceptions import ConnectionError
 
@@ -13,18 +13,37 @@ from ui import *
 
 
 class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
+    """
+    Главное окно чата, отображающее сообщения и список пользователей.
+
+    Attributes:
+        window: Окно регистрации или авторизации
+        main_user: Данные текущего пользователя
+        wind: Окно профиля пользователя
+        msb: Всплывающее окно для отображения ошибок
+        chat_layout: Layout для отображения сообщений
+        data: Данные, полученные с сервера
+    """
+
     def __init__(self) -> None:
+        """Инициализирует главное окно чата."""
         super().__init__()
         self.setupUi(self)
         self.initUI()
 
-        self.window: None | RegisterWidget | LoginWidget = None
-        self.main_user: dict[str, str | int] | None = None
-        self.wind: Profile | None = None
+        self.window: Optional[Union[RegisterWidget, LoginWidget]] = None
+        self.main_user: Optional[Dict[str, Union[str, int]]] = None
+        self.wind: Optional[UserProfileModal] = None
         self.msb: QMessageBox = QMessageBox()
         self.msb.setWindowTitle('Ошибка')
+        self.data: Dict[str, Any] = {}
 
     def initUI(self) -> None:
+        """
+        Инициализирует пользовательский интерфейс главного окна.
+
+        Настраивает соединения сигналов с слотами и создает layout для сообщений.
+        """
         self.message_btn.clicked.connect(self.send_message)
         self.my_btn.clicked.connect(self.show_my_profile)
         self.line_search.textChanged.connect(self.search_users)
@@ -35,7 +54,13 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
         self.chat_layout.setContentsMargins(10, 10, 10, 10)
         self.chat_layout.addStretch()
 
-    def showEvent(self, event) -> None:
+    def showEvent(self, event: QShowEvent) -> None:
+        """
+        Обрабатывает событие показа окна.
+
+        Args:
+            event: Событие показа окна
+        """
         try:
             self.data = requests.get('http://127.0.0.1:5000/').json()
             self.loading_msg()
@@ -44,14 +69,22 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
             self.msb.setText('Связь с сервером не установлена!')
             self.msb.show()
 
-    def closeEvent(self, event) -> None:
-        answer = requests.post('http://127.0.0.1:5000/change_state', json={'id': self.main_user['main_id']})
+    def closeEvent(self, event: QCloseEvent) -> None:
+        """
+        Обрабатывает событие закрытия окна.
+
+        Args:
+            event: Событие закрытия окна
+        """
+        if self.main_user:
+            answer = requests.post('http://127.0.0.1:5000/change_state', json={'id': self.main_user['main_id']})
 
     def send_message(self) -> None:
+        """Отправляет сообщение в чат."""
         if self.message_line.text():
-            data: dict[str, str] = {
+            data: Dict[str, str] = {
                 'text': self.message_line.text(),
-                'username': self.main_user['main_name']
+                'username': self.main_user['main_name']  # type: ignore
             }
 
             try:
@@ -66,11 +99,19 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
                 self.msb.setText('Ошибка отправки!')
                 self.msb.show()
 
-    def add_message_to_chat(self, text, is_my_message=True, author=None):
+    def add_message_to_chat(self, text: str, is_my_message: bool = True, author: Optional[str] = None) -> None:
+        """
+        Добавляет сообщение в чат.
+
+        Args:
+            text: Текст сообщения
+            is_my_message: Флаг, указывающий является ли сообщение своим
+            author: Автор сообщения (если не свой)
+        """
         max_width = int(self.scroll_chat.width() // 2)
 
         if is_my_message:
-            author = self.main_user['main_name']
+            author = self.main_user['main_name']  # type: ignore
         elif author is None:
             author = "Другой пользователь"
 
@@ -91,20 +132,23 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
         self.scroll_to_bottom()
 
     def scroll_to_bottom(self) -> None:
+        """Прокручивает чат до последнего сообщения."""
         scrollbar = self.scroll_chat.verticalScrollBar()
         QtCore.QTimer.singleShot(100, lambda: scrollbar.setValue(scrollbar.maximum()))
 
     def show_my_profile(self) -> None:
-        self.wind: UserProfileModal = UserProfileModal(
-            self.main_user['main_name'],
-            self.main_user['main_id'],
-            self.main_user['main_descr'],
+        """Отображает модальное окно с профилем текущего пользователя."""
+        self.wind = UserProfileModal(
+            self.main_user['main_name'],  # type: ignore
+            self.main_user['main_id'],  # type: ignore
+            self.main_user['main_descr'],  # type: ignore
             True
         )
         self.wind.setWindowTitle('Мой профиль')
         self.wind.show()
 
     def search_users(self) -> None:
+        """Выполняет поиск пользователей по введенному тексту."""
         search_text = self.line_search.text().strip().lower()
 
         if search_text == "":
@@ -125,11 +169,20 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
                 visible_count = 0
                 for i in range(len(names)):
                     if i < len(information) and i < len(ids) and i < len(states):
-                        if str(names[i]) != str(self.main_user['main_name']):
+                        if str(names[i]) != str(self.main_user['main_name']):  # type: ignore
                             if search_text in names[i].lower():
                                 self.add_profile(names[i], information[i], ids[i], states[i])
 
-    def add_profile(self, name, info, id, state) -> None:
+    def add_profile(self, name: str, info: str, id: int, state: bool) -> None:
+        """
+        Добавляет виджет профиля пользователя в список.
+
+        Args:
+            name: Имя пользователя
+            info: Информация о пользователе
+            id: ID пользователя
+            state: Статус пользователя (online/offline)
+        """
         profile = Profile(name, id, info, state, self.scrollAreaWidgetContents_3)
         grid_layout = self.scrollAreaWidgetContents_3.findChild(QtWidgets.QGridLayout, "gridLayout")
 
@@ -142,6 +195,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
             grid_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
     def loading_msg(self) -> None:
+        """Загружает и отображает сообщения из чата."""
         messages = self.data.get('messages', [])
         senders = self.data.get('sender_users', [])
 
@@ -153,13 +207,14 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
                     widget.setParent(None)
 
         for i in range(len(messages)):
-            if i < len(senders) and senders[i] == self.main_user['main_name']:
+            if i < len(senders) and senders[i] == self.main_user['main_name']:  # type: ignore
                 self.add_message_to_chat(messages[i], is_my_message=True)
             else:
                 sender_name = senders[i] if i < len(senders) else "Неизвестный"
                 self.add_message_to_chat(messages[i], is_my_message=False, author=sender_name)
 
     def loading_users(self) -> None:
+        """Загружает и отображает список пользователей."""
         names = self.data.get('names', [])
         information = self.data.get('infos', [])
         ids: List[str] = self.data['ids']
@@ -174,12 +229,20 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
 
         for i in range(len(names)):
             if i < len(information) and i < len(ids) and i < len(states):
-                if str(names[i]) != str(self.main_user['main_name']):
+                if str(names[i]) != str(self.main_user['main_name']):  # type: ignore
                     self.add_profile(names[i], information[i], ids[i], states[i])
 
 
 class RegisterWidget(QWidget, register.Ui_Form):
+    """
+    Виджет регистрации нового пользователя.
+
+    Attributes:
+        msb: Всплывающее окно для отображения ошибок
+    """
+
     def __init__(self) -> None:
+        """Инициализирует виджет регистрации."""
         super().__init__()
         self.setupUi(self)
         self.initUI()
@@ -188,12 +251,14 @@ class RegisterWidget(QWidget, register.Ui_Form):
         self.msb.setWindowTitle('Ошибка')
 
     def initUI(self) -> None:
+        """Инициализирует пользовательский интерфейс виджета регистрации."""
         self.register_btn.clicked.connect(self.enter_in)
 
         self.password_line.setEchoMode(QLineEdit.EchoMode.Password)
         self.try_line.setEchoMode(QLineEdit.EchoMode.Password)
 
     def return_style(self) -> None:
+        """Восстанавливает стандартные стили для всех полей ввода."""
         line_edits = self.findChildren(QLineEdit)
         labels = self.findChildren(QLabel)
 
@@ -204,29 +269,30 @@ class RegisterWidget(QWidget, register.Ui_Form):
         self.description.setStyleSheet("border: .5px solid black;")
 
     def enter_in(self) -> None:
+        """Обрабатывает попытку регистрации пользователя."""
         self.return_style()
 
         if self.name_line.text():
             if self.password_line.text():
                 if self.description.toPlainText():
                     if self.try_line.text() and self.try_line.text() == self.password_line.text():
-                        data: dict[str, str] = {
+                        data: Dict[str, str] = {
                             "username": self.name_line.text(),
                             "password": self.password_line.text(),
                             "user_info": self.description.toPlainText(),
                         }
 
                         try:
-                            answer: dict[str, bool | int] = requests.post(
+                            answer: Dict[str, Union[bool, int, str]] = requests.post(
                                 "http://127.0.0.1:5000/register",
                                 json=data
                             ).json()
 
                             if answer['answer']:
                                 window_chat.main_user = {
-                                    'main_name': answer['main_name'],
-                                    'main_descr': answer['main_info'],
-                                    'main_id': answer['main_id']
+                                    'main_name': answer['main_name'],  # type: ignore
+                                    'main_descr': answer['main_info'],  # type: ignore
+                                    'main_id': answer['main_id']  # type: ignore
                                 }
                                 window_chat.show()
                                 self.close()
@@ -257,7 +323,15 @@ class RegisterWidget(QWidget, register.Ui_Form):
 
 
 class LoginWidget(QWidget, login.Ui_Form):
+    """
+    Виджет авторизации пользователя.
+
+    Attributes:
+        msb: Всплывающее окно для отображения ошибок
+    """
+
     def __init__(self) -> None:
+        """Инициализирует виджет авторизации."""
         super().__init__()
         self.setupUi(self)
         self.initUI()
@@ -266,11 +340,13 @@ class LoginWidget(QWidget, login.Ui_Form):
         self.msb.setWindowTitle('Ошибка')
 
     def initUI(self) -> None:
+        """Инициализирует пользовательский интерфейс виджета авторизации."""
         self.login_btn.clicked.connect(self.enter_in)
 
         self.password_line.setEchoMode(QLineEdit.EchoMode.Password)
 
     def return_style(self) -> None:
+        """Восстанавливает стандартные стили для всех полей ввода."""
         line_edits = self.findChildren(QLineEdit)
         labels = self.findChildren(QLabel)
 
@@ -279,26 +355,27 @@ class LoginWidget(QWidget, login.Ui_Form):
             lab.setStyleSheet("color: black;")
 
     def enter_in(self) -> None:
+        """Обрабатывает попытку авторизации пользователя."""
         self.return_style()
 
         if self.name_line.text():
             if self.password_line.text():
-                data: dict[str, str] = {
+                data: Dict[str, str] = {
                     'username': self.name_line.text(),
                     'password': self.password_line.text()
                 }
 
                 try:
-                    answer: dict[str, bool | int] = requests.get(
+                    answer: Dict[str, Union[bool, int, str]] = requests.get(
                         "http://127.0.0.1:5000/login",
                         json=data
                     ).json()
 
                     if answer['answer']:
                         window_chat.main_user = {
-                            'main_name': answer['main_name'],
-                            'main_descr': answer['main_info'],
-                            'main_id': answer['main_id']
+                            'main_name': answer['main_name'],  # type: ignore
+                            'main_descr': answer['main_info'],  # type: ignore
+                            'main_id': answer['main_id']  # type: ignore
                         }
                         window_chat.show()
                         self.close()
@@ -318,18 +395,23 @@ class LoginWidget(QWidget, login.Ui_Form):
 
 
 class ChoiceWidget(QWidget, choice.Ui_Form):
+    """Виджет выбора между регистрацией и авторизацией."""
+
     def __init__(self) -> None:
+        """Инициализирует виджет выбора."""
         super().__init__()
         self.setupUi(self)
         self.initUI()
 
     def initUI(self) -> None:
+        """Инициализирует пользовательский интерфейс виджета выбора."""
         self.setFixedSize(400, 132)
 
         self.reg_btn.clicked.connect(self.click)
         self.log_btn.clicked.connect(self.click)
 
     def click(self) -> None:
+        """Обрабатывает нажатие кнопки регистрации или авторизации."""
         if self.sender().objectName() == 'reg_btn':
             window_chat.window = RegisterWidget()
         else:
@@ -340,16 +422,39 @@ class ChoiceWidget(QWidget, choice.Ui_Form):
 
 
 class Profile(QWidget, profile.Ui_UserCard):
-    def __init__(self, name, id, info, state, parent=None):
+    """
+    Виджет карточки пользователя в списке.
+
+    Attributes:
+        name: Имя пользователя
+        id: ID пользователя
+        info: Информация о пользователе
+        state: Статус пользователя (online/offline)
+        modal: Модальное окно с детальной информацией о пользователе
+    """
+
+    def __init__(self, name: str, id: int, info: str, state: bool, parent: Optional[QWidget] = None):
+        """
+        Инициализирует виджет карточки пользователя.
+
+        Args:
+            name: Имя пользователя
+            id: ID пользователя
+            info: Информация о пользователе
+            state: Статус пользователя
+            parent: Родительский виджет
+        """
         super().__init__(parent)
         self.setupUi(self)
         self.name = name
         self.id = id
         self.info = info
         self.state = state
+        self.modal: Optional[UserProfileModal] = None
         self.initUI()
 
     def initUI(self) -> None:
+        """Инициализирует пользовательский интерфейс карточки пользователя."""
         self.setFixedSize(304, 120)
         self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
 
@@ -371,12 +476,32 @@ class Profile(QWidget, profile.Ui_UserCard):
         self.detailsBtn.clicked.connect(self.open_details)
 
     def open_details(self) -> None:
+        """Открывает модальное окно с детальной информацией о пользователе."""
         self.modal = UserProfileModal(self.name, self.id, self.info, self.state)
         self.modal.show()
 
 
 class UserProfileModal(QDialog, modal_profile.Ui_UserProfileModal):
-    def __init__(self, name, id, info, state):
+    """
+    Модальное окно с детальной информацией о пользователе.
+
+    Attributes:
+        name: Имя пользователя
+        id: ID пользователя
+        info: Информация о пользователе
+        state: Статус пользователя (online/offline)
+    """
+
+    def __init__(self, name: str, id: int, info: str, state: bool):
+        """
+        Инициализирует модальное окно профиля пользователя.
+
+        Args:
+            name: Имя пользователя
+            id: ID пользователя
+            info: Информация о пользователе
+            state: Статус пользователя
+        """
         super().__init__()
         self.setupUi(self)
         self.name = name
@@ -388,6 +513,7 @@ class UserProfileModal(QDialog, modal_profile.Ui_UserProfileModal):
         self.initUI()
 
     def initUI(self) -> None:
+        """Инициализирует пользовательский интерфейс модального окна."""
         self.modalNameLabel.setText(self.name)
         self.modalIdLabel.setText(f"ID: {self.id}")
         self.infoTextEdit.setText(self.info)
@@ -404,15 +530,39 @@ class UserProfileModal(QDialog, modal_profile.Ui_UserProfileModal):
 
 
 class ChatMessage(QWidget):
-    def __init__(self, text, author, is_my_message=True, max_width=300):
+    """
+    Виджет сообщения в чате.
+
+    Attributes:
+        is_my_message: Флаг, указывающий является ли сообщение своим
+        max_width: Максимальная ширина сообщения
+        author: Автор сообщения
+        text: Текст сообщения
+        author_label: Метка с именем автора (для чужих сообщений)
+        text_browser: Виджет для отображения текста сообщения
+    """
+
+    def __init__(self, text: str, author: str, is_my_message: bool = True, max_width: int = 300):
+        """
+        Инициализирует виджет сообщения.
+
+        Args:
+            text: Текст сообщения
+            author: Автор сообщения
+            is_my_message: Флаг, указывающий является ли сообщение своим
+            max_width: Максимальная ширина сообщения
+        """
         super().__init__()
         self.is_my_message = is_my_message
         self.max_width = max_width
         self.author = author
         self.text = text
+        self.author_label: Optional[QLabel] = None
+        self.text_browser: Optional[QTextBrowser] = None
         self.initUI()
 
-    def initUI(self):
+    def initUI(self) -> None:
+        """Инициализирует пользовательский интерфейс виджета сообщения."""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(2)
@@ -459,11 +609,22 @@ class ChatMessage(QWidget):
         layout.addWidget(self.text_browser)
         self.set_message(self.text)
 
-    def set_message(self, text):
-        self.text_browser.setText(text)
-        self.adjust_size()
+    def set_message(self, text: str) -> None:
+        """
+        Устанавливает текст сообщения.
 
-    def adjust_size(self):
+        Args:
+            text: Текст сообщения
+        """
+        if self.text_browser:
+            self.text_browser.setText(text)
+            self.adjust_size()
+
+    def adjust_size(self) -> None:
+        """Настраивает размер виджета сообщения в соответствии с содержимым."""
+        if not self.text_browser:
+            return
+
         doc = self.text_browser.document()
         doc.setTextWidth(self.max_width)
 
@@ -485,8 +646,12 @@ if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
 if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
     QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
-
 if __name__ == '__main__':
+    """
+    Точка входа в приложение.
+
+    Создает и отображает начальное окно выбора (регистрация/авторизация).
+    """
     app = QApplication(sys.argv)
     window_chat: ChatWindow = ChatWindow()
     window_choice: ChoiceWidget = ChoiceWidget()
