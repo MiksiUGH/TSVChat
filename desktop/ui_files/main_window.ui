@@ -141,17 +141,7 @@
          <height>279</height>
         </rect>
        </property>
-       <widget class="QWidget" name="gridLayoutWidget">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>661</width>
-          <height>291</height>
-         </rect>
-        </property>
-        <layout class="QGridLayout" name="gridLayout"/>
-       </widget>
+       <layout class="QGridLayout" name="gridLayout"/>
       </widget>
      </widget>
      <widget class="QPushButton" name="my_btn">

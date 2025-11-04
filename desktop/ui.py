@@ -106,30 +106,16 @@ class ChatWindow(QMainWindow):
         ...
 
     def add_profile(self, name, info, id, state) -> None:
-        # Создаем карточку профиля
         profile = Profile(name, id, info, state, self.scrollAreaWidgetContents_3)
-
-        # Получаем gridLayout
         grid_layout = self.scrollAreaWidgetContents_3.findChild(QtWidgets.QGridLayout, "gridLayout")
 
-        if grid_layout:
-            # Находим следующую свободную позицию в сетке
-            row = grid_layout.rowCount()
-            col = grid_layout.columnCount()
+        if grid_layout is not None:
+            current_count = grid_layout.count()
+            row = current_count // 2
+            col = current_count % 2
 
-            # Расчет позиции для 2 карточек в строке
-            current_row = row
-            current_col = col % 2  # 0 или 1 для двух колонок
-
-            # Если это первая карточка в строке, увеличиваем счетчик строк
-            if current_col == 0 and col > 0:
-                current_row += 1
-
-            # Добавляем карточку в сетку
-            grid_layout.addWidget(profile, current_row, current_col)
-
-            # Обновляем layout
-            grid_layout.update()
+            grid_layout.addWidget(profile, row, col)
+            grid_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
     def loading(self):
         messages = self.data.get('messages', [])
@@ -156,12 +142,10 @@ class ChatWindow(QMainWindow):
 
         grid_layout = self.scrollAreaWidgetContents_3.findChild(QtWidgets.QGridLayout, "gridLayout")
         if grid_layout:
-            for i in reversed(range(grid_layout.count())):
-                item = grid_layout.itemAt(i)
-                if item:
-                    widget = item.widget()
-                    if widget:
-                        widget.setParent(None)
+            while grid_layout.count():
+                child = grid_layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
 
         for i in range(len(names)):
             if i < len(information) and i < len(ids) and i < len(states):
@@ -364,8 +348,8 @@ class Profile(QWidget):
 
 
 class UserProfileModal(QDialog):
-    def __init__(self, name, id, info, state, parent=None):
-        super().__init__(parent)
+    def __init__(self, name, id, info, state):
+        super().__init__()
         uic.loadUi('desktop/ui_files/modal_profile.ui', self)
         self.name = name
         self.id = id
@@ -392,8 +376,8 @@ class UserProfileModal(QDialog):
 
 
 class ChatMessage(QWidget):
-    def __init__(self, text, author, is_my_message=True, max_width=300, parent=None):
-        super().__init__(parent)
+    def __init__(self, text, author, is_my_message=True, max_width=300):
+        super().__init__()
         self.is_my_message = is_my_message
         self.max_width = max_width
         self.author = author
