@@ -9,11 +9,13 @@ from PyQt6.QtGui import QTextDocument
 import requests
 from requests.exceptions import ConnectionError
 
+from ui import *
 
-class ChatWindow(QMainWindow):
+
+class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
     def __init__(self) -> None:
         super().__init__()
-        uic.loadUi('desktop/ui_files/main_window.ui', self)
+        self.setupUi(self)
         self.initUI()
 
         self.window: None | RegisterWidget | LoginWidget = None
@@ -67,7 +69,6 @@ class ChatWindow(QMainWindow):
     def add_message_to_chat(self, text, is_my_message=True, author=None):
         max_width = int(self.scroll_chat.width() // 2)
 
-        # Определяем автора
         if is_my_message:
             author = self.main_user['main_name']
         elif author is None:
@@ -177,10 +178,10 @@ class ChatWindow(QMainWindow):
                     self.add_profile(names[i], information[i], ids[i], states[i])
 
 
-class RegisterWidget(QWidget):
+class RegisterWidget(QWidget, register.Ui_Form):
     def __init__(self) -> None:
         super().__init__()
-        uic.loadUi('desktop/ui_files/register.ui', self)
+        self.setupUi(self)
         self.initUI()
 
         self.msb: QMessageBox = QMessageBox(self)
@@ -255,10 +256,10 @@ class RegisterWidget(QWidget):
             self.label.setStyleSheet("color: red")
 
 
-class LoginWidget(QWidget):
+class LoginWidget(QWidget, login.Ui_Form):
     def __init__(self) -> None:
         super().__init__()
-        uic.loadUi('desktop/ui_files/login.ui', self)
+        self.setupUi(self)
         self.initUI()
 
         self.msb: QMessageBox = QMessageBox(self)
@@ -316,10 +317,10 @@ class LoginWidget(QWidget):
             self.label.setStyleSheet("color: red")
 
 
-class ChoiceWidget(QWidget):
+class ChoiceWidget(QWidget, choice.Ui_Form):
     def __init__(self) -> None:
         super().__init__()
-        uic.loadUi('desktop/ui_files/choice.ui', self)
+        self.setupUi(self)
         self.initUI()
 
     def initUI(self) -> None:
@@ -338,10 +339,10 @@ class ChoiceWidget(QWidget):
         self.close()
 
 
-class Profile(QWidget):
+class Profile(QWidget, profile.Ui_UserCard):
     def __init__(self, name, id, info, state, parent=None):
         super().__init__(parent)
-        uic.loadUi('desktop/ui_files/profile.ui', self)
+        self.setupUi(self)
         self.name = name
         self.id = id
         self.info = info
@@ -374,10 +375,10 @@ class Profile(QWidget):
         self.modal.show()
 
 
-class UserProfileModal(QDialog):
+class UserProfileModal(QDialog, modal_profile.Ui_UserProfileModal):
     def __init__(self, name, id, info, state):
         super().__init__()
-        uic.loadUi('desktop/ui_files/modal_profile.ui', self)
+        self.setupUi(self)
         self.name = name
         self.id = id
         self.info = info
@@ -484,11 +485,8 @@ if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
 if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
     QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 
-def excepthook(a, b, c) -> None:
-    sys.__excepthook__(a, b, c)
 
 if __name__ == '__main__':
-    sys.excepthook = excepthook
     app = QApplication(sys.argv)
     window_chat: ChatWindow = ChatWindow()
     window_choice: ChoiceWidget = ChoiceWidget()
