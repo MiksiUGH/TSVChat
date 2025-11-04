@@ -36,7 +36,8 @@ class ChatWindow(QMainWindow):
     def showEvent(self, event) -> None:
         try:
             self.data = requests.get('http://127.0.0.1:5000/').json()
-            self.loading()
+            self.loading_msg()
+            self.loading_users()
         except ConnectionError:
             self.msb.setText('Связь с сервером не установлена!')
             self.msb.show()
@@ -103,7 +104,29 @@ class ChatWindow(QMainWindow):
         self.wind.show()
 
     def search_users(self) -> None:
-        ...
+        search_text = self.line_search.text().strip().lower()
+
+        if search_text == "":
+            self.loading_users()
+        else:
+            names = self.data.get('names', [])
+            information = self.data.get('infos', [])
+            ids = self.data['ids']
+            states = self.data.get('states', [])
+
+            grid_layout = self.scrollAreaWidgetContents_3.findChild(QtWidgets.QGridLayout, "gridLayout")
+            if grid_layout:
+                while grid_layout.count():
+                    child = grid_layout.takeAt(0)
+                    if child.widget():
+                        child.widget().deleteLater()
+
+                visible_count = 0
+                for i in range(len(names)):
+                    if i < len(information) and i < len(ids) and i < len(states):
+                        if str(names[i]) != str(self.main_user['main_name']):
+                            if search_text in names[i].lower():
+                                self.add_profile(names[i], information[i], ids[i], states[i])
 
     def add_profile(self, name, info, id, state) -> None:
         profile = Profile(name, id, info, state, self.scrollAreaWidgetContents_3)
@@ -117,7 +140,7 @@ class ChatWindow(QMainWindow):
             grid_layout.addWidget(profile, row, col)
             grid_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-    def loading(self):
+    def loading_msg(self) -> None:
         messages = self.data.get('messages', [])
         senders = self.data.get('sender_users', [])
 
@@ -135,6 +158,7 @@ class ChatWindow(QMainWindow):
                 sender_name = senders[i] if i < len(senders) else "Неизвестный"
                 self.add_message_to_chat(messages[i], is_my_message=False, author=sender_name)
 
+    def loading_users(self) -> None:
         names = self.data.get('names', [])
         information = self.data.get('infos', [])
         ids: List[str] = self.data['ids']
@@ -325,6 +349,9 @@ class Profile(QWidget):
         self.initUI()
 
     def initUI(self) -> None:
+        self.setFixedSize(304, 120)
+        self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+
         self.nameLabel.setText(self.name)
         self.idLabel.setText(f"ID: {self.id}")
 

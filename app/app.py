@@ -76,7 +76,7 @@ def index() -> Tuple[flask.Response, int]:
             'names': users_name,
             'infos': users_info,
             'messages': users_messages,
-            'ids': users_id,  # ИЗМЕНИЛ 'id' на 'ids'
+            'ids': users_id,
             'sender_users': sender_users,
             'states': users_state
         }), 200
