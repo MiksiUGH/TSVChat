@@ -1,11 +1,11 @@
 import sys
 from typing import List, Optional, Dict, Any, Union
-from PyQt6 import uic, QtCore, QtWidgets
-from PyQt6.QtCore import Qt, QSize, QTimer, QEvent
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QPushButton,
+from PyQt6 import QtCore, QtWidgets
+from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget,
                              QLineEdit, QMessageBox, QLabel, QFrame, QTextBrowser,
                              QVBoxLayout, QHBoxLayout, QSizePolicy, QDialog)
-from PyQt6.QtGui import QTextDocument, QCloseEvent, QShowEvent
+from PyQt6.QtGui import QCloseEvent, QShowEvent
 import requests
 from requests.exceptions import ConnectionError
 
