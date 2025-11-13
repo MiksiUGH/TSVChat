@@ -31,6 +31,10 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
         self.setupUi(self)
         self.initUI()
 
+        self.update_timer: QTimer = QTimer()
+        self.update_timer.timeout.connect(self.update_messages)
+        self.update_timer.start(2000)
+
         self.window: Optional[Union[RegisterWidget, LoginWidget]] = None
         self.main_user: Optional[Dict[str, Union[str, int]]] = None
         self.wind: Optional[UserProfileModal] = None
@@ -76,8 +80,19 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
         Args:
             event: Событие закрытия окна
         """
+        self.update_timer.stop()
         if self.main_user:
             answer = requests.post('http://127.0.0.1:5000/change_state', json={'id': self.main_user['main_id']})
+
+    def update_messages(self) -> None:
+        """Периодически обновляет сообщения"""
+        if self.main_user:
+            try:
+                self.data = requests.get('http://127.0.0.1:5000/').json()
+                self.loading_msg()
+                self.loading_users()
+            except ConnectionError:
+                pass
 
     def send_message(self) -> None:
         """Отправляет сообщение в чат."""
@@ -217,7 +232,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
         """Загружает и отображает список пользователей."""
         names = self.data.get('names', [])
         information = self.data.get('infos', [])
-        ids: List[str] = self.data['ids']
+        ids: List[str] = self.data.get('ids', [])
         states = self.data.get('states', [])
 
         grid_layout = self.scrollAreaWidgetContents_3.findChild(QtWidgets.QGridLayout, "gridLayout")
@@ -229,7 +244,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
 
         for i in range(len(names)):
             if i < len(information) and i < len(ids) and i < len(states):
-                if str(names[i]) != str(self.main_user['main_name']):  # type: ignore
+                if str(names[i]) != str(self.main_user['main_name']):
                     self.add_profile(names[i], information[i], ids[i], states[i])
 
 
