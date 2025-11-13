@@ -23,6 +23,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
         msb: Всплывающее окно для отображения ошибок
         chat_layout: Layout для отображения сообщений
         data: Данные, полученные с сервера
+        update_timer: Таймер обновления данных
     """
 
     def __init__(self) -> None:
