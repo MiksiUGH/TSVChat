@@ -32,7 +32,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
         self.initUI()
 
         self.update_timer: QTimer = QTimer()
-        self.update_timer.timeout.connect(self.update_messages)
+        self.update_timer.timeout.connect(self.update_data)
         self.update_timer.start(2000)
 
         self.window: Optional[Union[RegisterWidget, LoginWidget]] = None
@@ -84,8 +84,8 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
         if self.main_user:
             answer = requests.post('http://127.0.0.1:5000/change_state', json={'id': self.main_user['main_id']})
 
-    def update_messages(self) -> None:
-        """Периодически обновляет сообщения"""
+    def update_data(self) -> None:
+        """Периодически обновляет сообщения и список пользователей"""
         if self.main_user:
             try:
                 self.data = requests.get('http://127.0.0.1:5000/').json()
