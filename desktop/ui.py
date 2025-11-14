@@ -9,7 +9,7 @@ from PyQt6.QtGui import QCloseEvent, QShowEvent
 import requests
 from requests.exceptions import ConnectionError
 
-from ui import *
+from user_interfaces import *
 
 
 class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
