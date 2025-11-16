@@ -47,7 +47,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
         """
         Инициализирует пользовательский интерфейс главного окна.
 
-        Настраивает соединения сигналов с слотами и создает layout для сообщений.
+        Настраивает соединения сигналов со слотами и создает layout для сообщений.
         """
         self.message_btn.clicked.connect(self.send_message)
         self.my_btn.clicked.connect(self.show_my_profile)
@@ -91,7 +91,11 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
             try:
                 self.data = requests.get('http://127.0.0.1:5000/').json()
                 self.loading_msg()
-                self.loading_users()
+
+                if self.line_search.text().strip() != "":
+                    self.search_users()
+                else:
+                    self.loading_users()
             except ConnectionError:
                 pass
 
@@ -169,28 +173,43 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
             return
 
         search_text = self.line_search.text().strip().lower()
+        names = self.data.get('names', [])
+        information = self.data.get('infos', [])
+        ids = self.data.get('ids', [])
+        states = self.data.get('states', [])
 
-        if search_text == "":
-            self.loading_users()
-        else:
-            names = self.data.get('names', [])
-            information = self.data.get('infos', [])
-            ids = self.data['ids']
-            states = self.data.get('states', [])
+        grid_layout = self.scrollAreaWidgetContents_3.findChild(QtWidgets.QGridLayout, "gridLayout")
+        if grid_layout:
+            while grid_layout.count():
+                child = grid_layout.takeAt(0)
+                if child.widget():
+                    child.widget().deleteLater()
 
-            grid_layout = self.scrollAreaWidgetContents_3.findChild(QtWidgets.QGridLayout, "gridLayout")
-            if grid_layout:
-                while grid_layout.count():
-                    child = grid_layout.takeAt(0)
-                    if child.widget():
-                        child.widget().deleteLater()
-
-                visible_count = 0
+            if search_text == "":
+                for i in range(len(names)):
+                    if i < len(information) and i < len(ids) and i < len(states):
+                        if str(names[i]) != str(self.main_user['main_name']):
+                            self.add_profile(names[i], information[i], ids[i], states[i])
+            else:
+                found_any = False
                 for i in range(len(names)):
                     if i < len(information) and i < len(ids) and i < len(states):
                         if str(names[i]) != str(self.main_user['main_name']):
                             if search_text in names[i].lower():
                                 self.add_profile(names[i], information[i], ids[i], states[i])
+                                found_any = True
+
+                if not found_any:
+                    no_results_label = QLabel("Пользователи не найдены")
+                    no_results_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                    no_results_label.setStyleSheet("""
+                        QLabel {
+                            color: #666;
+                            font-size: 14px;
+                            padding: 20px;
+                        }
+                    """)
+                    grid_layout.addWidget(no_results_label, 0, 0)
 
     def add_profile(self, name: str, info: str, id: int, state: bool) -> None:
         """
@@ -234,7 +253,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
 
     def loading_users(self) -> None:
         """Загружает и отображает список пользователей."""
-        if self.has_open_profile_modals():
+        if self.has_open_profile_modals() or self.line_search.text().strip() != "":
             return
 
         names = self.data.get('names', [])
