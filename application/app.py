@@ -3,7 +3,7 @@ from typing import Tuple, Any, Dict, List, Optional
 from sqlalchemy import select, Select
 import datetime
 
-from app.models import User, UserMessage, UserProfile, MAIN_SESSION, Base, ENGINE
+from application.models import User, UserMessage, UserProfile, MAIN_SESSION, Base, ENGINE
 
 app: flask.Flask = flask.Flask(__name__)
 """Экземпляр Flask-приложения."""

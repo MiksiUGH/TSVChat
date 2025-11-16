@@ -165,6 +165,9 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
 
     def search_users(self) -> None:
         """Выполняет поиск пользователей по введенному тексту."""
+        if self.has_open_profile_modals():
+            return
+
         search_text = self.line_search.text().strip().lower()
 
         if search_text == "":
@@ -231,6 +234,9 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
 
     def loading_users(self) -> None:
         """Загружает и отображает список пользователей."""
+        if self.has_open_profile_modals():
+            return
+
         names = self.data.get('names', [])
         information = self.data.get('infos', [])
         ids: List[str] = self.data.get('ids', [])
@@ -247,6 +253,15 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
             if i < len(information) and i < len(ids) and i < len(states):
                 if str(names[i]) != str(self.main_user['main_name']):
                     self.add_profile(names[i], information[i], ids[i], states[i])
+
+    def has_open_profile_modals(self) -> bool:
+        """Проверяет, есть ли открытые модальные окна профилей других пользователей."""
+        for widget in QApplication.allWidgets():
+            if (isinstance(widget, UserProfileModal) and
+                    hasattr(widget, 'name') and
+                    widget.name != self.main_user['main_name']):  # type: ignore
+                return True
+        return False
 
 
 class RegisterWidget(QWidget, register.Ui_Form):
