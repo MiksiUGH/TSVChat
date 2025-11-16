@@ -34,7 +34,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
 
         self.update_timer: QTimer = QTimer()
         self.update_timer.timeout.connect(self.update_data)
-        self.update_timer.start(2000)
+        self.update_timer.start(1000)
 
         self.window: Optional[Union[RegisterWidget, LoginWidget]] = None
         self.main_user: Optional[Dict[str, Union[str, int]]] = None
@@ -100,7 +100,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
         if self.message_line.text():
             data: Dict[str, str] = {
                 'text': self.message_line.text(),
-                'username': self.main_user['main_name']  # type: ignore
+                'username': self.main_user['main_name']
             }
 
             try:
@@ -127,7 +127,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
         max_width = int(self.scroll_chat.width() // 2)
 
         if is_my_message:
-            author = self.main_user['main_name']  # type: ignore
+            author = self.main_user['main_name']
         elif author is None:
             author = "Другой пользователь"
 
@@ -155,9 +155,9 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
     def show_my_profile(self) -> None:
         """Отображает модальное окно с профилем текущего пользователя."""
         self.wind = UserProfileModal(
-            self.main_user['main_name'],  # type: ignore
-            self.main_user['main_id'],  # type: ignore
-            self.main_user['main_descr'],  # type: ignore
+            self.main_user['main_name'],
+            self.main_user['main_id'],
+            self.main_user['main_descr'],
             True
         )
         self.wind.setWindowTitle('Мой профиль')
@@ -188,7 +188,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
                 visible_count = 0
                 for i in range(len(names)):
                     if i < len(information) and i < len(ids) and i < len(states):
-                        if str(names[i]) != str(self.main_user['main_name']):  # type: ignore
+                        if str(names[i]) != str(self.main_user['main_name']):
                             if search_text in names[i].lower():
                                 self.add_profile(names[i], information[i], ids[i], states[i])
 
@@ -226,7 +226,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
                     widget.setParent(None)
 
         for i in range(len(messages)):
-            if i < len(senders) and senders[i] == self.main_user['main_name']:  # type: ignore
+            if i < len(senders) and senders[i] == self.main_user['main_name']:
                 self.add_message_to_chat(messages[i], is_my_message=True)
             else:
                 sender_name = senders[i] if i < len(senders) else "Неизвестный"
@@ -256,12 +256,7 @@ class ChatWindow(QMainWindow, main_window.Ui_MainWindow):
 
     def has_open_profile_modals(self) -> bool:
         """Проверяет, есть ли открытые модальные окна профилей других пользователей."""
-        for widget in QApplication.allWidgets():
-            if (isinstance(widget, UserProfileModal) and
-                    hasattr(widget, 'name') and
-                    widget.name != self.main_user['main_name']):  # type: ignore
-                return True
-        return False
+        return len(Profile.open_modals) > 0
 
 
 class RegisterWidget(QWidget, register.Ui_Form):
@@ -321,9 +316,9 @@ class RegisterWidget(QWidget, register.Ui_Form):
 
                             if answer['answer']:
                                 window_chat.main_user = {
-                                    'main_name': answer['main_name'],  # type: ignore
-                                    'main_descr': answer['main_info'],  # type: ignore
-                                    'main_id': answer['main_id']  # type: ignore
+                                    'main_name': answer['main_name'],
+                                    'main_descr': answer['main_info'],
+                                    'main_id': answer['main_id']
                                 }
                                 window_chat.show()
                                 self.close()
@@ -404,9 +399,9 @@ class LoginWidget(QWidget, login.Ui_Form):
 
                     if answer['answer']:
                         window_chat.main_user = {
-                            'main_name': answer['main_name'],  # type: ignore
-                            'main_descr': answer['main_info'],  # type: ignore
-                            'main_id': answer['main_id']  # type: ignore
+                            'main_name': answer['main_name'],
+                            'main_descr': answer['main_info'],
+                            'main_id': answer['main_id']
                         }
                         window_chat.show()
                         self.close()
@@ -457,12 +452,14 @@ class Profile(QWidget, profile.Ui_UserCard):
     Виджет карточки пользователя в списке.
 
     Attributes:
+        open_modals: Статическая переменная для отслеживания открытых окон
         name: Имя пользователя
         id: ID пользователя
         info: Информация о пользователе
         state: Статус пользователя (online/offline)
         modal: Модальное окно с детальной информацией о пользователе
     """
+    open_modals = set()
 
     def __init__(self, name: str, id: int, info: str, state: bool, parent: Optional[QWidget] = None):
         """
@@ -509,6 +506,8 @@ class Profile(QWidget, profile.Ui_UserCard):
     def open_details(self) -> None:
         """Открывает модальное окно с детальной информацией о пользователе."""
         self.modal = UserProfileModal(self.name, self.id, self.info, self.state)
+        Profile.open_modals.add(self.modal)
+        self.modal.finished.connect(lambda: Profile.open_modals.discard(self.modal))
         self.modal.show()
 
 
